@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Mode Character Segmenter</title>
+    <title>Smart Word-Boundary Segmenter (90-100 Range)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -12,16 +12,6 @@
             background-color: #0f172a; /* Slate 900 */
             color: #f1f5f9; /* Slate 100 */
         }
-        /* Custom highlight for 100th character */
-        .highlight-100 {
-            background-color: #d946ef; /* Fuchsia 500 */
-            color: white;
-            padding: 0 2px;
-            border-radius: 4px;
-            box-shadow: 0 0 8px rgba(217, 70, 239, 0.6);
-            font-weight: bold;
-        }
-        /* Hide scrollbar but keep functionality */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -45,9 +35,9 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                 </svg>
-                เครื่องมือหั่นข้อความ (Dark Mode)
+                เครื่องมือหั่นข้อความ (ช่วง 90-100 ตัว)
             </h1>
-            <p class="opacity-80 text-sm">หั่นท่อนละ 100 ตัว และไฮไลต์จุดสำคัญให้ดูง่ายในที่มืดจ้า</p>
+            <p class="opacity-80 text-sm">เน้นตัดที่ช่องว่างในช่วง 90-100 ตัวอักษร เพื่อไม่ให้คำขาดและท่อนไม่สั้นเกินไปจ้า</p>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-b-3xl shadow-2xl border-x border-b border-slate-700">
@@ -64,18 +54,10 @@
                 </div>
             </div>
 
-            <!-- Visual Preview -->
-            <div class="mb-8">
-                <label class="block text-slate-300 font-semibold mb-2 text-sm uppercase tracking-wider">ตัวอย่างการไฮไลต์:</label>
-                <div id="visualPreview" class="p-4 bg-slate-900 border border-slate-700 rounded-2xl min-h-[100px] text-slate-300 break-words leading-loose shadow-inner">
-                    <span class="text-slate-500 italic">รอรับข้อความจากเตงอยู่น้า...</span>
-                </div>
-            </div>
-
             <!-- Chunks Display -->
             <div class="border-t border-slate-700 pt-6">
                 <label class="block text-slate-200 font-semibold mb-4 text-lg border-l-4 border-fuchsia-500 pl-3">
-                    รายการแบ่งท่อน (ท่อนละ 100 ตัว)
+                    รายการแบ่งท่อน
                 </label>
                 <div id="chunksContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Chunks will be generated here -->
@@ -86,49 +68,68 @@
 
     <script>
         const textInput = document.getElementById('textInput');
-        const visualPreview = document.getElementById('visualPreview');
         const totalCharsDisplay = document.getElementById('totalChars');
         const chunksContainer = document.getElementById('chunksContainer');
 
+        function smartSplit(text, limit) {
+            let chunks = [];
+            let remainingText = text;
+            const minThreshold = 90; // เริ่มหาจุดตัดที่ 90 ตัวอักษร
+
+            while (remainingText.length > 0) {
+                if (remainingText.length <= limit) {
+                    chunks.push(remainingText.trim());
+                    break;
+                }
+
+                // ดึงข้อความออกมา 100 ตัวก่อน
+                let potentialChunk = remainingText.substring(0, limit);
+                let cutIndex = limit; // ค่าเริ่มต้นคือตัดที่ 100
+
+                // หาช่องว่างสุดท้ายในช่วง 90 ถึง 100
+                let lastSpaceInRange = potentialChunk.lastIndexOf(' ');
+                
+                // ถ้าเจอช่องว่าง และช่องว่างนั้นอยู่ในช่วง 90-100 (Index 89 ขึ้นไป)
+                if (lastSpaceInRange >= minThreshold - 1) {
+                    cutIndex = lastSpaceInRange;
+                } 
+                // ถ้าไม่เจอช่องว่างในช่วง 90-100 เลย จะปล่อยให้มันตัดที่ 100 ไปเลยตามเดิม
+                // เพื่อไม่ให้ท่อนสั้นเกินไป (เช่นตัดที่ 50-60 แบบเดิม)
+
+                let finalChunk = remainingText.substring(0, cutIndex).trim();
+                if (finalChunk.length > 0) {
+                    chunks.push(finalChunk);
+                }
+                
+                // ตัดส่วนที่ใช้แล้วออก แล้วไปทำต่อ
+                remainingText = remainingText.substring(cutIndex).trim();
+            }
+            return chunks;
+        }
+
         function processText() {
             const text = textInput.value;
-            const length = text.length;
-            totalCharsDisplay.textContent = length;
+            totalCharsDisplay.textContent = text.length;
 
-            if (length === 0) {
-                visualPreview.innerHTML = '<span class="text-slate-500 italic">รอรับข้อความจากเตงอยู่น้า...</span>';
+            if (text.length === 0) {
                 chunksContainer.innerHTML = '';
                 return;
             }
 
-            // 1. Highlighted Preview Logic
-            let previewHtml = '';
-            for (let i = 0; i < length; i++) {
-                const char = text[i].replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-                if ((i + 1) % 100 === 0) {
-                    previewHtml += `<span class="highlight-100">${char}</span>`;
-                } else {
-                    previewHtml += char;
-                }
-            }
-            visualPreview.innerHTML = previewHtml;
+            const chunks = smartSplit(text, 100);
 
-            // 2. Chunk Generation Logic
             chunksContainer.innerHTML = '';
-            for (let i = 0; i < length; i += 100) {
-                const chunkText = text.substring(i, i + 100);
-                const chunkIndex = Math.floor(i / 100) + 1;
-                
+            chunks.forEach((chunkText, index) => {
                 const card = document.createElement('div');
                 card.className = 'bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col justify-between hover:border-fuchsia-500 transition-colors shadow-lg';
                 
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-2">
-                        <span class="bg-fuchsia-900/40 text-fuchsia-300 text-xs font-bold px-2 py-1 rounded">ท่อนที่ ${chunkIndex}</span>
-                        <span class="text-xs text-slate-500">${chunkText.length} / 100</span>
+                        <span class="bg-fuchsia-900/40 text-fuchsia-300 text-xs font-bold px-2 py-1 rounded">ท่อนที่ ${index + 1}</span>
+                        <span class="text-xs ${chunkText.length < 90 ? 'text-amber-400' : 'text-slate-500'}">${chunkText.length} / 100</span>
                     </div>
-                    <div class="text-sm text-slate-400 bg-slate-950/50 p-3 rounded-lg mb-3 h-16 overflow-hidden line-clamp-3">
-                        ${chunkText}
+                    <div class="text-sm text-slate-400 bg-slate-950/50 p-3 rounded-lg mb-3 min-h-[4rem] break-words">
+                        ${escapeHtml(chunkText)}
                     </div>
                     <button onclick="copyToClipboard(this, \`${encodeURIComponent(chunkText)}\`)" 
                         class="w-full py-2 bg-slate-700 hover:bg-fuchsia-600 text-white rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 active:scale-95">
@@ -139,7 +140,11 @@
                     </button>
                 `;
                 chunksContainer.appendChild(card);
-            }
+            });
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
         }
 
         function copyToClipboard(btn, encodedText) {
@@ -150,11 +155,11 @@
             textarea.select();
             try {
                 document.execCommand('copy');
-                const originalText = btn.innerHTML;
+                const originalContent = btn.innerHTML;
                 btn.innerHTML = 'สำเร็จแล้วจ้า!';
                 btn.classList.replace('bg-slate-700', 'bg-green-600');
                 setTimeout(() => {
-                    btn.innerHTML = originalText;
+                    btn.innerHTML = originalContent;
                     btn.classList.replace('bg-green-600', 'bg-slate-700');
                 }, 1000);
             } catch (err) {
@@ -167,5 +172,4 @@
     </script>
 </body>
 </html>
-
 
