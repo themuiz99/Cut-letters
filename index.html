@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Word-Boundary Segmenter (90-100 Range)</title>
+    <title>TheMuiz - เครื่องมือหั่นข้อความ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -29,18 +29,31 @@
 </head>
 <body class="p-4 md:p-8 min-h-screen">
     <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-violet-600 to-fuchsia-600 p-6 rounded-t-3xl text-white shadow-2xl">
-            <h1 class="text-2xl font-bold flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <!-- Header ย่อขนาดลงครึ่งหนึ่งตามสั่ง -->
+        <div class="bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-3 rounded-t-3xl text-white shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <h1 class="text-xl font-bold flex items-center gap-2 tracking-wide">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                 </svg>
-                เครื่องมือหั่นข้อความ (ช่วง 90-100 ตัว)
+                TheMuiz
             </h1>
-            <p class="opacity-80 text-sm">เน้นตัดที่ช่องว่างในช่วง 90-100 ตัวอักษร เพื่อไม่ให้คำขาดและท่อนไม่สั้นเกินไปจ้า</p>
+            <p class="opacity-90 text-xs text-fuchsia-100 font-light">หั่นข้อความเป็นท่อน/กำหนดตัวเลขจำนวนตัวอักษรได้</p>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-b-3xl shadow-2xl border-x border-b border-slate-700">
+            <!-- Settings: Max Length Input -->
+            <div class="mb-6 bg-slate-900/60 p-3 rounded-xl border border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3 max-w-lg mx-auto">
+                <div>
+                    <label for="maxLengthInput" class="block text-slate-200 font-semibold text-xs">จำนวนตัวอักษรสูงสุดต่อท่อน:</label>
+                    <span class="text-[10px] text-slate-400">ตัดไม่ให้คำขาดอัตโนมัติ</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="maxLengthInput" value="" placeholder="กรอกตัวเลข" min="5" max="1000"
+                        class="w-24 p-1.5 bg-slate-950 border border-slate-700 rounded-lg focus:border-fuchsia-500 focus:outline-none transition-all text-center text-fuchsia-400 font-bold text-sm shadow-inner">
+                    <span class="text-slate-400 text-xs">ตัวอักษร</span>
+                </div>
+            </div>
+
             <!-- Input -->
             <div class="mb-6">
                 <label class="block text-slate-300 font-semibold mb-2">วางข้อความของเตงที่นี่:</label>
@@ -49,14 +62,29 @@
                     placeholder="ใส่ข้อความของตะเองได้เลยนะ..."></textarea>
                 
                 <div class="mt-2 flex justify-between items-center">
-                    <!-- ปุ่มล้างข้อความเล็กๆ สีแดง -->
-                    <button id="clearBtn" class="text-xs bg-red-900/30 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1.5 rounded-lg border border-red-800/50 transition-all active:scale-95">
-                        ล้างข้อความ
-                    </button>
-                    <div class="text-sm">
-                        <span class="text-slate-400">จำนวนทั้งหมด:</span> 
-                        <span id="totalChars" class="font-bold text-fuchsia-400">0</span> 
-                        <span class="text-slate-400">ตัวอักษร</span>
+                    <div class="flex items-center gap-2">
+                        <!-- ปุ่มล้างข้อความสีแดง -->
+                        <button id="clearBtn" class="text-xs bg-red-900/30 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1.5 rounded-lg border border-red-800/50 transition-all active:scale-95">
+                            ล้างข้อความ
+                        </button>
+                        <!-- ปุ่มคัดลอกข้อความสีเขียว อยู่ขวามือของปุ่มล้างข้อความ -->
+                        <button id="copyInputBtn" class="text-xs bg-emerald-900/30 hover:bg-emerald-600 text-emerald-400 hover:text-white px-3 py-1.5 rounded-lg border border-emerald-800/50 transition-all active:scale-95 flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                            </svg>
+                            คัดลอกข้อความ
+                        </button>
+                    </div>
+                    <!-- เพิ่มระยะห่าง (gap-5) เพื่อไม่ให้ติดกันเกินไป และจัดเรียงสวยงาม -->
+                    <div class="text-[11px] flex gap-5 text-slate-400 pl-3">
+                        <div>
+                            <span>ตัวอักษร :</span> 
+                            <span id="totalChars" class="font-bold text-fuchsia-400">0</span>
+                        </div>
+                        <div>
+                            <span>ท่อน :</span> 
+                            <span id="totalChunks" class="font-bold text-fuchsia-400">0</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -85,39 +113,66 @@
 
     <script>
         const textInput = document.getElementById('textInput');
+        const maxLengthInput = document.getElementById('maxLengthInput');
         const totalCharsDisplay = document.getElementById('totalChars');
+        const totalChunksDisplay = document.getElementById('totalChunks');
         const chunksContainer = document.getElementById('chunksContainer');
         const clearBtn = document.getElementById('clearBtn');
+        const copyInputBtn = document.getElementById('copyInputBtn');
         const saveContainer = document.getElementById('saveContainer');
         const saveTxtBtn = document.getElementById('saveTxtBtn');
 
         let currentChunks = [];
 
+        // ฟังก์ชันพระเอกของเราสำหรับหั่นข้อความไม่ให้ขาดคำ
         function smartSplit(text, limit) {
             let chunks = [];
-            let remainingText = text;
-            const minThreshold = 90;
+            let remainingText = text.trim();
+
+            let segmenter;
+            try {
+                segmenter = new Intl.Segmenter('th', { granularity: 'word' });
+            } catch (e) {
+                segmenter = null;
+            }
 
             while (remainingText.length > 0) {
                 if (remainingText.length <= limit) {
-                    chunks.push(remainingText.trim());
+                    chunks.push(remainingText);
                     break;
                 }
 
-                let potentialChunk = remainingText.substring(0, limit);
                 let cutIndex = limit;
 
-                let lastSpaceInRange = potentialChunk.lastIndexOf(' ');
-                
-                if (lastSpaceInRange >= minThreshold - 1) {
-                    cutIndex = lastSpaceInRange;
-                } 
+                if (segmenter) {
+                    let lookAheadText = remainingText.substring(0, limit + 20);
+                    const segments = segmenter.segment(lookAheadText);
+                    
+                    let currentLen = 0;
+                    
+                    for (const segment of segments) {
+                        if (currentLen + segment.segment.length > limit) {
+                            break;
+                        }
+                        currentLen += segment.segment.length;
+                    }
+
+                    if (currentLen > 0) {
+                        cutIndex = currentLen;
+                    }
+                } else {
+                    let potentialChunk = remainingText.substring(0, limit);
+                    let lastSpace = potentialChunk.lastIndexOf(' ');
+                    if (lastSpace >= limit - 10 && lastSpace > 0) {
+                        cutIndex = lastSpace;
+                    }
+                }
 
                 let finalChunk = remainingText.substring(0, cutIndex).trim();
                 if (finalChunk.length > 0) {
                     chunks.push(finalChunk);
                 }
-                
+
                 remainingText = remainingText.substring(cutIndex).trim();
             }
             return chunks;
@@ -125,29 +180,33 @@
 
         function processText() {
             const text = textInput.value;
+            let limit = parseInt(maxLengthInput.value);
+            
             totalCharsDisplay.textContent = text.length;
 
-            if (text.length === 0) {
+            if (text.trim().length === 0 || isNaN(limit) || limit < 5) {
                 chunksContainer.innerHTML = '';
+                totalChunksDisplay.textContent = '0';
                 saveContainer.classList.add('hidden');
                 currentChunks = [];
                 return;
             }
 
-            currentChunks = smartSplit(text, 100);
+            currentChunks = smartSplit(text, limit);
+            totalChunksDisplay.textContent = currentChunks.length;
             saveContainer.classList.remove('hidden');
 
             chunksContainer.innerHTML = '';
             currentChunks.forEach((chunkText, index) => {
                 const card = document.createElement('div');
                 card.className = 'bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col justify-between hover:border-fuchsia-500 transition-colors shadow-lg';
-                
+
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-2">
                         <span class="bg-fuchsia-900/40 text-fuchsia-300 text-xs font-bold px-2 py-1 rounded">ท่อนที่ ${index + 1}</span>
-                        <span class="text-xs ${chunkText.length < 90 ? 'text-amber-400' : 'text-slate-500'}">${chunkText.length} / 100</span>
+                        <span class="text-xs text-slate-400">${chunkText.length} / ${limit} ตัวอักษร</span>
                     </div>
-                    <div class="text-sm text-slate-400 bg-slate-950/50 p-3 rounded-lg mb-3 min-h-[4rem] break-words">
+                    <div class="text-sm text-slate-200 bg-slate-950/50 p-3 rounded-lg mb-3 min-h-[4rem] break-words">
                         ${escapeHtml(chunkText)}
                     </div>
                     <button onclick="copyToClipboard(this, \`${encodeURIComponent(chunkText)}\`)" 
@@ -173,11 +232,30 @@
             textInput.focus();
         });
 
+        // ฟังก์ชันคัดลอกข้อความทั้งหมดในช่องพิมพ์
+        copyInputBtn.addEventListener('click', () => {
+            if (!textInput.value) return;
+            textInput.select();
+            try {
+                document.execCommand('copy');
+                const originalText = copyInputBtn.innerHTML;
+                copyInputBtn.innerHTML = 'คัดลอกแล้ว!';
+                copyInputBtn.classList.replace('text-emerald-400', 'text-white');
+                copyInputBtn.classList.replace('bg-emerald-900/30', 'bg-emerald-600');
+                setTimeout(() => {
+                    copyInputBtn.innerHTML = originalText;
+                    copyInputBtn.classList.replace('text-white', 'text-emerald-400');
+                    copyInputBtn.classList.replace('bg-emerald-600', 'bg-emerald-900/30');
+                }, 1000);
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+        });
+
         // ฟังก์ชัน Save ไฟล์ txt
         saveTxtBtn.addEventListener('click', () => {
             if (currentChunks.length === 0) return;
 
-            // รวมข้อความโดยแยกท่อนด้วยการเว้นบรรทัด 2 ครั้ง
             const fileContent = currentChunks.map((chunk, i) => `[ท่อนที่ ${i + 1}]\n${chunk}`).join('\n\n');
             const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
@@ -213,6 +291,7 @@
         }
 
         textInput.addEventListener('input', processText);
+        maxLengthInput.addEventListener('input', processText);
     </script>
 </body>
 </html>
