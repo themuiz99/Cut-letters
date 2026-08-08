@@ -206,7 +206,7 @@
                         <span class="bg-fuchsia-900/40 text-fuchsia-300 text-xs font-bold px-2 py-1 rounded">ท่อนที่ ${index + 1}</span>
                         <span class="text-xs text-slate-400">${chunkText.length} / ${limit} ตัวอักษร</span>
                     </div>
-                    <div class="text-sm text-slate-200 bg-slate-950/50 p-3 rounded-lg mb-3 min-h-[4rem] break-words">
+                    <div class="text-sm text-slate-200 bg-slate-950/50 p-3 rounded-lg mb-3 h-32 overflow-y-auto break-words">
                         ${escapeHtml(chunkText)}
                     </div>
                     <button onclick="copyToClipboard(this, \`${encodeURIComponent(chunkText)}\`)" 
